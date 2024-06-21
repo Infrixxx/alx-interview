@@ -1,37 +1,32 @@
 #!/usr/bin/python3
+"""
+Reads stdin line by line and computes metrics about
+status codes count and total file size
+"""
 import sys
-import re
-from collections import defaultdict
 
-def print_stats(total_size, status_codes):
-    """Print the current statistics."""
-    print(f"File size: {total_size}")
-    for code in sorted(status_codes.keys()):
-        if status_codes[code] > 0:
-            print(f"{code}: {status_codes[code]}")
 
-total_size = 0
-line_count = 0
-status_codes = defaultdict(int)
-log_pattern = re.compile(r'\S+ - \[\S+\] "GET /projects/260 HTTP/1.1" (\d{3}) (\d+)')
-
+codes = {}
+size = 0
+limit = 0
 try:
     for line in sys.stdin:
-        match = log_pattern.match(line)
-        if match:
-            status_code = int(match.group(1))
-            file_size = int(match.group(2))
-
-            total_size += file_size
-            status_codes[status_code] += 1
-
-        line_count += 1
-
-        if line_count % 10 == 0:
-            print_stats(total_size, status_codes)
-
+        try:
+            intel = line.split(" ")
+            size += int(intel[-1])
+            if len(intel[-2]) == 3:
+                codes[int(intel[-2])] = codes.get(int(intel[-2]), 0) + 1
+                limit += 1
+        except (IndexError, ValueError):
+            pass
+        if limit == 10:
+            limit = 0
+            print("File size: {}".format(size))
+            for key, value in sorted(codes.items()):
+                print("{}: {}".format(key, value))
 except KeyboardInterrupt:
-    print_stats(total_size, status_codes)
-    raise
-
-print_stats(total_size, status_codes)
+    pass
+finally:
+    print("File size: {}".format(size))
+    for key, value in sorted(codes.items()):
+        print("{}: {}".format(key, value))
