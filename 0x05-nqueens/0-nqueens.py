@@ -1,7 +1,9 @@
 #!/usr/bin/python3
-""" N queens puzzle, challenge of placing N non attacking queens
+""" 
+N queens puzzle, challenge of placing N non attacking queens
 on a NxN chessboard
-This program solves the N queens problem """
+This program solves the N queens problem 
+"""
 
 from sys import argv
 
