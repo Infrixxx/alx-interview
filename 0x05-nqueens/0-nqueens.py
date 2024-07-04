@@ -1,125 +1,57 @@
 #!/usr/bin/python3
-""" A program that solves the N queens problem
-"""
-from sys import argv
+
+import sys
 
 
-def check_row(board, index, board_len):
-    """ Check if there is a queen in the row """
-    for r in range(board_len):
-        if board[index][r]:
-            return (False)
-
-    return (True)
+def solve(row, column):
+    solver = [[]]
+    for q in range(row):
+        solver = place_queen(q, column, solver)
+    return solver
 
 
-def check_r_angle(board, row, col, board_len):
-    """ Check if there is a queen in the left angle """
-    c = col
-    for r in range(row, -1, -1):
-        if c >= board_len:
-            break
-        if board[r][c]:
-            return (False)
-        c += 1
-
-    c = col
-    for r in range(row, board_len):
-        if c < 0:
-            break
-        if board[r][c]:
-            return (False)
-        c -= 1
-
-    return (True)
+def place_queen(q, column, prev_solver):
+    solver_queen = []
+    for array in prev_solver:
+        for x in range(column):
+            if is_safe(q, x, array):
+                solver_queen.append(array + [x])
+    return solver_queen
 
 
-def check_l_angle(board, row, col, board_len):
-    """ Check if there is a queen in the right angle """
-    c = col
-    for r in range(row, -1, -1):
-        if c < 0:
-            break
-        if board[r][c]:
-            return (False)
-        c -= 1
-
-    c = col
-    for r in range(row, board_len):
-        if c >= board_len:
-            break
-        if board[r][c]:
-            return (False)
-        c += 1
-
-    return (True)
-
-
-def chek_all(board, r, c, n):
-    if not check_row(board, r, n):
+def is_safe(q, x, array):
+    if x in array:
         return (False)
-
-    if not check_l_angle(board, r, c, n):
-        return (False)
-
-    return (check_r_angle(board, r, c, n))
+    else:
+        return all(abs(array[column] - x) != q - column
+                   for column in range(q))
 
 
-def main():
-    """ The Main Function """
-
-    argc = len(argv)
-    if argc != 2:
+def init():
+    if len(sys.argv) != 2:
         print("Usage: nqueens N")
-        exit(1)
-
-    try:
-        n = int(argv[1])
-    except Exception:
+        sys.exit(1)
+    if sys.argv[1].isdigit():
+        the_queen = int(sys.argv[1])
+    else:
         print("N must be a number")
-        exit(1)
-
-    if n < 4:
+        sys.exit(1)
+    if the_queen < 4:
         print("N must be at least 4")
-        exit(1)
-
-    n_range = range(n)
-    i = 0
-    c = 0
-    r = i
-    board = [[0 for _ in n_range] for _ in n_range]
-    result = []
-    while i < n:
-        while (c < n):
-            found = 0
-
-            while (r < n):
-                if chek_all(board, r, c, n):
-                    board[r][c] = 1
-                    result.append([c, r])
-                    found = 1
-                    r = 0
-                    break
-                r += 1
-
-            if not found and len(result):
-                last_i = result.pop()
-                c = last_i[0]
-                r = last_i[1] + 1
-                board[last_i[1]][last_i[0]] = 0
-                continue
-            c += 1
-
-        if len(result):
-            print(result)
-            i = result[0][1]
-            last_i = result.pop()
-            c = last_i[0]
-            r = last_i[1] + 1
-            board[last_i[1]][last_i[0]] = 0
-        else:
-            return
+        sys.exit(1)
+    return(the_queen)
 
 
-if __name__ == "__main__":
-    main()
+def n_queens():
+
+    the_queen = init()
+    solver = solve(the_queen, the_queen)
+    for array in solver:
+        clean = []
+        for q, x in enumerate(array):
+            clean.append([q, x])
+        print(clean)
+
+
+if __name__ == '__main__':
+    n_queens()
