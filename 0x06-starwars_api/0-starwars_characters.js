@@ -1,20 +1,37 @@
 #!/usr/bin/node
-
 const request = require('request');
-
-// Function to fetch and print character names in exact order
-const exactOrder = (actors, index) => {
-  if (index === actors.length) return;
-  request(actors[index], function (err, res, body) {
-    if (err) throw err;
-    console.log(JSON.parse(body).name);
-    exactOrder(actors, index + 1);
-  });
+const movieID = process.argv[2];
+const options = {
+  url: 'https://swapi-api.alx-tools.com/api/films/' + movieID,
+  method: 'GET'
 };
 
-// Main function to fetch the movie data
-request('https://swapi-api.hbtn.io/api/films/' + process.argv[2], function (err, res, body) {
-  if (err) throw err;
-  const actors = JSON.parse(body).characters;
-  exactOrder(actors, 0);
-});
+async function main () {
+  try {
+    request(options, async function (error, response, body) {
+      if (error) throw error;
+      const charactersURL = JSON.parse(body).characters;
+      for (const link of charactersURL) {
+        try {
+          const character = await requestPromise(link);
+          console.log(character.name);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function requestPromise (url) {
+  return new Promise((resolve, reject) => {
+    request(url, { json: true }, (error, response, body) => {
+      if (error) return reject(error);
+      resolve(body);
+    });
+  });
+}
+
+main();
