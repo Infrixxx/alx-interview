@@ -1,37 +1,41 @@
 #!/usr/bin/node
+
 const request = require('request');
-const movieID = process.argv[2];
-const options = {
-  url: 'https://swapi-api.alx-tools.com/api/films/' + movieID,
-  method: 'GET'
-};
+const movieId = process.argv[2];
+const url = 'https://swapi-api.alx-tools.com/api/films/' + movieId;
 
-async function main () {
-  try {
-    request(options, async function (error, response, body) {
-      if (error) throw error;
-      const charactersURL = JSON.parse(body).characters;
-      for (const link of charactersURL) {
-        try {
-          const character = await requestPromise(link);
-          console.log(character.name);
-        } catch (error) {
-          console.error(error);
-        }
-      }
-    });
-  } catch (error) {
-    console.error(error);
+async function getCharacterName (characters, index, names = []) {
+  if (index === characters.length) {
+    names.forEach((name) => console.log(name));
+    return;
   }
-}
-
-function requestPromise (url) {
-  return new Promise((resolve, reject) => {
-    request(url, { json: true }, (error, response, body) => {
-      if (error) return reject(error);
-      resolve(body);
-    });
+  const characterPath = characters[index];
+  request(characterPath, (error, response, body) => {
+    if (error) {
+      console.log(error);
+    } else if (response.statusCode !== 200) {
+      console.error('Unexpected status code:', response.statusCode);
+    } else {
+      // console.log(JSON.parse(body).name);
+      names.push(JSON.parse(body).name);
+      getCharacterName(characters, index + 1, names);
+    }
   });
 }
-
-main();
+if (process.argv.length !== 3) {
+  console.log('Usage: ./0-starwars_characters.js <filmId>');
+  process.exit(1);
+}
+async function getMovies () {
+  request(url, (error, response, body) => {
+    if (error) {
+      console.log(error);
+    } else if (response.statusCode !== 200) {
+      console.error('Unexpected status code:', response.statusCode);
+    } else {
+      const characters = JSON.parse(body).characters;
+      getCharacterName(characters, 0);
+    }
+  });
+}
+getMovies();
